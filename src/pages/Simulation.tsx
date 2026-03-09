@@ -1,189 +1,267 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
-import { simulationScenarios } from "@/lib/mockData";
-import { toast } from "sonner";
 
-const Simulation = () => {
-  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [totalPoints, setTotalPoints] = useState(0);
-  const [completed, setCompleted] = useState(false);
-
-  const currentScenario = simulationScenarios[currentScenarioIndex];
-  const isLastScenario = currentScenarioIndex === simulationScenarios.length - 1;
-
-  const handleChoiceSelect = (choiceIndex: number) => {
-    if (showFeedback) return;
-    setSelectedChoice(choiceIndex);
-    setShowFeedback(true);
-
-    const choice = currentScenario.choices[choiceIndex];
-    setTotalPoints(totalPoints + choice.points);
-
-    if (choice.isCorrect) {
-      toast.success(`Great choice! +${choice.points} points`, {
-        description: choice.feedback,
-      });
-    } else {
-      toast.error("Consider another approach", {
-        description: choice.feedback,
-      });
-    }
-  };
-
-  const handleNext = () => {
-    if (isLastScenario) {
-      setCompleted(true);
-    } else {
-      setCurrentScenarioIndex(currentScenarioIndex + 1);
-      setSelectedChoice(null);
-      setShowFeedback(false);
-    }
-  };
-
-  if (completed) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 p-4">
-        <div className="container mx-auto max-w-2xl py-12">
-          <Card className="border-border shadow-lg">
-            <CardContent className="flex flex-col items-center gap-6 p-12 text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-accent/20">
-                <CheckCircle2 className="h-12 w-12 text-accent" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold text-foreground mb-2">
-                  Scenarios Complete!
-                </h2>
-                <p className="text-lg text-muted-foreground mb-4">
-                  You've practiced real-world security situations
-                </p>
-                <p className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Total Points: {totalPoints}
-                </p>
-              </div>
-              <p className="text-muted-foreground max-w-md">
-                Remember these lessons when making real mobile payments. Stay vigilant and always prioritize your security!
-              </p>
-              <div className="flex gap-3">
-                <Link to="/quiz">
-                  <Button variant="outline" size="lg">
-                    Take a Quiz
-                  </Button>
-                </Link>
-                <Link to="/">
-                  <Button variant="gradient" size="lg">
-                    Back to Home
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 p-4">
-      <div className="container mx-auto max-w-3xl">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <Link to="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
-          <div className="text-sm text-muted-foreground">
-            Scenario {currentScenarioIndex + 1} of {simulationScenarios.length}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8 h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full bg-gradient-to-r from-accent to-secondary transition-all duration-500"
-            style={{
-              width: `${((currentScenarioIndex + 1) / simulationScenarios.length) * 100}%`,
-            }}
-          />
-        </div>
-
-        {/* Points Display */}
-        <div className="mb-6 text-center">
-          <p className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Total Points: {totalPoints}
-          </p>
-        </div>
-
-        {/* Scenario Card */}
-        <Card className="mb-6 border-border shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">{currentScenario.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground/90 leading-relaxed mb-6">
-              {currentScenario.description}
-            </p>
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-muted-foreground mb-3">
-                What would you do?
-              </p>
-              {currentScenario.choices.map((choice, index) => {
-                const isSelected = selectedChoice === index;
-                const showResult = showFeedback && isSelected;
-
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleChoiceSelect(index)}
-                    disabled={showFeedback}
-                    className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
-                      showResult && choice.isCorrect
-                        ? "border-success bg-success/10"
-                        : showResult && !choice.isCorrect
-                        ? "border-warning bg-warning/10"
-                        : isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:border-primary/50 hover:bg-accent/50"
-                    } ${showFeedback ? "cursor-not-allowed" : "cursor-pointer"}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="text-foreground">{choice.text}</span>
-                      {showResult && choice.isCorrect && (
-                        <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0" />
-                      )}
-                      {showResult && !choice.isCorrect && (
-                        <XCircle className="h-5 w-5 text-warning flex-shrink-0" />
-                      )}
-                    </div>
-                    {showResult && (
-                      <p className="mt-3 text-sm text-muted-foreground border-t border-border pt-3">
-                        {choice.feedback}
-                      </p>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        {showFeedback && (
-          <div className="flex justify-end">
-            <Button variant="gradient" size="lg" onClick={handleNext}>
-              {isLastScenario ? "Complete Scenarios" : "Next Scenario"}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+type Option = {
+  text: string;
+  next: string;
+  risk: number;
 };
 
-export default Simulation;
+type Step = {
+  title: string;
+  description: string;
+  options: Option[];
+};
+
+const simulation: Record<string, Step> = {
+
+  start: {
+    title: "QR Code Payment",
+    description:
+      "You are paying at a café. A QR code appears on the counter.",
+    options: [
+      {
+        text: "Check the merchant name before paying",
+        next: "merchant",
+        risk: -10
+      },
+      {
+        text: "Scan and pay immediately",
+        next: "otp",
+        risk: 20
+      }
+    ]
+  },
+
+  merchant: {
+    title: "Merchant Verification",
+    description:
+      "The merchant name looks slightly unusual. It says 'Coffe-Bar' instead of 'Coffee-Bar'.",
+    options: [
+      {
+        text: "Cancel the transaction",
+        next: "safe",
+        risk: -20
+      },
+      {
+        text: "Continue anyway",
+        next: "sms",
+        risk: 10
+      }
+    ]
+  },
+
+  sms: {
+    title: "Suspicious SMS",
+    description:
+      "You receive an SMS: 'Confirm your payment immediately using this link.'",
+    options: [
+      {
+        text: "Click the link",
+        next: "fraud",
+        risk: 40
+      },
+      {
+        text: "Ignore and check your banking app",
+        next: "otp",
+        risk: -10
+      }
+    ]
+  },
+
+  otp: {
+    title: "OTP Request",
+    description:
+      "Your banking app requests an OTP confirmation for the payment.",
+    options: [
+      {
+        text: "Enter OTP immediately",
+        next: "fraud",
+        risk: 30
+      },
+      {
+        text: "Verify the transaction first",
+        next: "safe",
+        risk: -10
+      }
+    ]
+  },
+
+  safe: {
+    title: "Safe Outcome",
+    description: "You avoided a potential fraud attempt.",
+    options: []
+  },
+
+  fraud: {
+    title: "Fraud Outcome",
+    description: "You exposed yourself to a payment fraud risk.",
+    options: []
+  }
+
+};
+
+export default function Simulation() {
+
+  const [step, setStep] = useState("start");
+  const [risk, setRisk] = useState(0);
+
+  const current = simulation[step];
+
+  return (
+
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        background: "#f3f4f6"
+      }}
+    >
+
+      {/* PHONE FRAME */}
+
+      <div
+        style={{
+          width: 300,
+          height: 600,
+          background: "black",
+          borderRadius: 35,
+          padding: 8,
+          boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+        }}
+      >
+
+        {/* PHONE SCREEN */}
+
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "white",
+            borderRadius: 28,
+            padding: 16,
+            boxSizing: "border-box",
+            overflowY: "auto"
+          }}
+        >
+
+          <h2>{current.title}</h2>
+
+          <p>{current.description}</p>
+
+          {/* QR VISUAL */}
+
+          {step === "start" && (
+            <div
+              style={{
+                height: 160,
+                background: "#000",
+                borderRadius: 12,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                marginBottom: 20
+              }}
+            >
+              <div
+                style={{
+                  width: 120,
+                  height: 120,
+                  background: "white",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center"
+                }}
+              >
+                QR
+              </div>
+            </div>
+          )}
+
+          {/* OTP VISUAL */}
+
+          {step === "otp" && (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "center",
+                marginBottom: 20
+              }}
+            >
+              {[1,2,3,4,5,6].map(i => (
+                <div
+                  key={i}
+                  style={{
+                    width: 35,
+                    height: 40,
+                    border: "1px solid #cbd5f5",
+                    borderRadius: 6
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* OPTIONS */}
+
+          {current.options.map((option, index) => (
+
+            <button
+              key={index}
+              style={{
+                marginTop: 10,
+                padding: 12,
+                width: "100%",
+                borderRadius: 10,
+                border: "none",
+                background: "#2563eb",
+                color: "white"
+              }}
+              onClick={() => {
+                setRisk(risk + option.risk);
+                setStep(option.next);
+              }}
+            >
+              {option.text}
+            </button>
+
+          ))}
+
+          {/* RESULT */}
+
+          {current.options.length === 0 && (
+
+            <div style={{ marginTop: 20 }}>
+
+              <h3>Your Risk Score: {risk}</h3>
+
+              {risk <= 0 && (
+                <p style={{ color: "green" }}>
+                  Excellent! You made safe decisions.
+                </p>
+              )}
+
+              {risk > 0 && risk < 40 && (
+                <p style={{ color: "orange" }}>
+                  Moderate risk behaviour detected.
+                </p>
+              )}
+
+              {risk >= 40 && (
+                <p style={{ color: "red" }}>
+                  High fraud vulnerability detected.
+                </p>
+              )}
+
+            </div>
+
+          )}
+
+        </div>
+      </div>
+
+    </div>
+  );
+}
