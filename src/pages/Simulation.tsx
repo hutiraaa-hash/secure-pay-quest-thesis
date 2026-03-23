@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { paymentSimulationSteps } from "../data/paymentSimulation";
 
 export default function Simulation(){
+
+const navigate = useNavigate();
 
 const [stepIndex,setStepIndex] = useState(0);
 const [riskScore,setRiskScore] = useState(0);
@@ -279,6 +282,25 @@ padding:16,
 boxSizing:"border-box",
 overflowY:"auto"
 }}>
+
+{/* 🔙 Back */}
+<button 
+onClick={() => navigate("/")}
+style={{
+background:"none",
+border:"none",
+color:"#2563eb",
+marginBottom:6,
+cursor:"pointer"
+}}
+>
+← Back to Home
+</button>
+
+{/* 📊 Progress */}
+<p style={{fontSize:12, color:"#64748b"}}>
+Step {stepIndex + 1} of {paymentSimulationSteps.length}
+</p>
 
 <h4>{step.phase}</h4>
 
